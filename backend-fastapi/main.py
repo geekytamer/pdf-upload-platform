@@ -22,14 +22,15 @@ app = FastAPI()
 
 # Allowed origins (update this with your frontend's URL)
 origins = [
-    "https://v10fwg0x-3001.inc1.devtunnels.ms",  # Frontend origin
-    "http://localhost:3000",                     # Local development (optional)
+    # "https://v10fwg0x-3001.inc1.devtunnels.ms",  # Frontend origin
+    # "http://localhost:3000",                     # Local development (optional)
+    "*"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,          # Allows specific origins
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],            # Allows all HTTP methods
     allow_headers=["*"],            # Allows all headers
 )
@@ -87,9 +88,9 @@ def add_qr_to_pdf(pdf_path: Path, qr_path: Path, output_path: Path):
 
         # Calculate the centered rectangle
         left = ((page_width - square_size) / 2) - 5
-        top = ((page_height - square_size) / 2) + 322
+        top = ((page_height - square_size)) - 20
         right = left + square_size + 10
-        bottom = top + square_size + 10.3
+        bottom = top + square_size + 10
 
         qr_rect = fitz.Rect(left, top, right, bottom)
         page.insert_image(qr_rect, stream=qr_image_bytes)  # Insert the QR code as an image
@@ -104,8 +105,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
     
     document_id = str(uuid4())
-    verification_url = f"https://v10fwg0x-3001.inc1.devtunnels.ms/verify/{document_id}"
-    print(f"https://v10fwg0x-3001.inc1.devtunnels.ms/verify/{document_id}")
+    verification_url = f"https://mll116rk-3000.asse.devtunnels.ms/verify/{document_id}"
     qr_path = generate_qr_code(verification_url)
     
     input_pdf_path = UPLOAD_FOLDER / f"{document_id}_input.pdf"
@@ -141,3 +141,7 @@ async def login(request: LoginRequest):
         return {"token": os.getenv("ADMIN_TOKEN")}
     else:
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the PDF Upload Platform API. Use /docs for API documentation."}
